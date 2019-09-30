@@ -1,4 +1,4 @@
-// Copyright 036-Sep-2019 ºDeme
+// Copyright 06-Sep-2019 ºDeme
 // GNU General Public License - V3 <http://www.gnu.org/licenses/>
 
 /// Functions using external programs.
@@ -64,7 +64,7 @@
     if
   )
   (Result)
-  tp,option
+  wrap,option
 ) zip =
 /// Compresses source in target. It calls:
 ///   zip -q 'target' 'source' 2>&1
@@ -84,7 +84,7 @@
     (r fail) (r "" !=) if
   )
   (Result)
-  tp,option
+  wrap,option
 ) unzip =
 /// Uncompresses source in target. It calls:
 ///   unzip -q 'source' -d 'target' 2>&1
