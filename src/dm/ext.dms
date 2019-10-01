@@ -42,7 +42,8 @@
 ///           If user clicks on 'cancel', it returns an empty string.
 
 ( target =; source =
-  (file,cwd target path,+) else (target) (target "/" str,starts?) if
+  file,cwd : cwd =
+  (cwd target path,+) else (target) (target "/" str,starts?) if
     target =
   source path,name name =
 
@@ -55,10 +56,10 @@
   if
   sys,cmd Result =
 
+  cwd file,cd
+
   ( "Fail running zip." fail)
   ( r =;
-    file,cwd file,cd
-
     ("Target file '" : target : "' not found\n" : r + + + fail)
     (target file,exists? !)
     if
