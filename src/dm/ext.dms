@@ -6,7 +6,7 @@
 ( url =
   "wget -q --no-cache -O - " url + sys,cmd
   (pop; "") else (0 get) (dup size) if
-) wget =
+) wget =>
 /// Calls "wget -q -O - 'url'" and returns the text read.
 /// If the reading fails, it returns an empty string.
 ///   String: Url to call.
@@ -17,7 +17,7 @@
   "zenity --info --icon-name=\"" icon "\" --text=\"" text "\" 2>/dev/null"
     + + + + sys,cmd
   ("Fail running zenity." fail) (size !) if
-) zenityMsg  =
+) zenityMsg  =>
 /// Shows a message box. It calls:
 ///       zenity --notification --window-icon='icon' --text='text'
 ///   String: Icon to show. One of gnome icon stock. For example: info,
@@ -30,8 +30,8 @@
 
   "zenity --entry --title=\"" title "\" --text=\"" text "\" 2>/dev/null"
     + + + + sys,cmd
-    ("Command error" fail) () () tp,option str,trim
-) zenityEntry =
+    ("Command error" fail) () () wrap,option str,trim
+) zenityEntry =>
 /// Reads a text using a GUI box. It calls:
 ///       zenity --entry --title='title' --text='prompt'
 ///   String: Title of box.
@@ -66,7 +66,7 @@
   )
   (Result)
   wrap,option
-) zip =
+) zip =>
 /// Compresses source in target. It calls:
 ///   zip -q 'target' 'source' 2>&1
 /// if 'target' already exists, source will be added to it. If you require a
@@ -86,7 +86,7 @@
   )
   (Result)
   wrap,option
-) unzip =
+) unzip =>
 /// Uncompresses source in target. It calls:
 ///   unzip -q 'source' -d 'target' 2>&1
 ///
