@@ -5,7 +5,7 @@
 
 ( url =
   "wget -q --no-cache -O - " url + sys,cmd
-  (pop; "") else (0 get) (dup size) if
+  dup size (0 get) (pop; "") elif
 ) wget =>
 /// Calls "wget -q -O - 'url'" and returns the text read.
 /// If the reading fails, it returns an empty string.
@@ -16,7 +16,7 @@
 ( text =; icon =
   "zenity --info --icon-name=\"" icon "\" --text=\"" text "\" 2>/dev/null"
     + + + + sys,cmd
-  ("Fail running zenity." fail) (size !) if
+  size ! ("Fail running zenity." fail) if
 ) zenityMsg  =>
 /// Shows a message box. It calls:
 ///       zenity --notification --window-icon='icon' --text='text'
@@ -30,7 +30,7 @@
 
   "zenity --entry --title=\"" title "\" --text=\"" text "\" 2>/dev/null"
     + + + + sys,cmd
-    ("Command error" fail) () () wrap,option str,trim
+    () ("Command error" fail) wrap,option str,trim
 ) zenityEntry =>
 /// Reads a text using a GUI box. It calls:
 ///       zenity --entry --title='title' --text='prompt'
@@ -43,28 +43,27 @@
 
 ( target =; source =
   file,cwd : cwd =
-  (cwd target path,+) else (target) (target "/" str,starts?) if
+  target "/" str,starts? (target) (cwd target path,+)  elif
     target =
-  source path,name name =
+  source path,name : name =
 
   source path,parent file,cd
 
-  ("zip -q " : target : " " : name : " 2>&1" + + + +)
-  else
+  name file,directory?
   ("zip -q -r " : target : " " : name : " 2>&1" + + + +)
-  (name file,directory?)
-  if
+  ("zip -q " : target : " " : name : " 2>&1" + + + +)
+  elif
   sys,cmd Result =
 
   cwd file,cd
 
-  ( "Fail running zip." fail)
+  Result
   ( r =;
+    target file,exists? !
     ("Target file '" : target : "' not found\n" : r + + + fail)
-    (target file,exists? !)
     if
   )
-  (Result)
+  ( "Fail running zip." fail)
   wrap,option
 ) zip =>
 /// Compresses source in target. It calls:
@@ -76,15 +75,15 @@
 
 
 ( target =; source =
-  ("'" : target : "' is not a directory" fail) (target file,directory? !) if
+  target file,directory? ! ("'" : target : "' is not a directory" fail) if
   "unzip -q -o " : source : " -d " : target : " 2>&1" + + + +
     sys,cmd Result =
 
-  ( "Fail running unzip." fail)
+  Result
   ( r =;
-    (r fail) (r "" !=) if
+    r "" != (r fail) if
   )
-  (Result)
+  ( "Fail running unzip." fail)
   wrap,option
 ) unzip =>
 /// Uncompresses source in target. It calls:

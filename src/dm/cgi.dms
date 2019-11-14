@@ -13,7 +13,7 @@
 "KqpJp4K96QqtVjmXwhVcST9l+u1XUPL6K9HQfEEGMGcToMGUrzNQxCzlg2g+" +
 "Hg55i7iiKbA0ogENhEIFjMG+wmFDNzgjvDnNYOaPTQ7l4C8aaPsEfl3sugiw" + dmKey. =
 
-{} data Cgi. =
+{} map,from Cgi. =
 /*
   fkey: String     // key to encrypt files
   key: Opt<String> // key to communications.
@@ -24,34 +24,35 @@
 ( tExpiration =; home =
 
   this,Cgi.
-    "fkey"        : this,dmKey. this,dmKey. size cryp,key : obj,put+
-    "key"         : wrap,none : obj,put+
-    "home"        : home : obj,put+
-    "tExpiration" : tExpiration : obj,put
+    "fkey"        : this,dmKey. this,dmKey. size cryp,key : map,put+
+    "key"         : wrap,none : map,put+
+    "home"        : home : map,put+
+    "tExpiration" : tExpiration : map,put
 
-  (home file,mkdir) (home file,exists? !) if
+  home file,exists? ! (home file,mkdir) if
 
+  home "users.db" path,+ file,exists? !
   (
     [] data this,writeUsers.
     "admin" this,dmKey. "0" this,putUser.
     [] data this,writeSessions.
   )
-  (home "users.db" path,+ file,exists? !) if
+  if
 ) init =>
 /// (String, Int) -> Void
 
 // Users -----------------------------------------------------------------------
 
 ( Users =  // (List<String>) -> Void
-  this,Cgi. "home" obj,get : "users.db" : path,+
-    Users (js,ws) lst,map js,wa : this,Cgi. "fkey" obj,get : cryp,cryp
+  this,Cgi. .home : "users.db" : path,+
+    Users (js,ws) lst,map js,wa : this,Cgi. .fkey : cryp,cryp
       file,write
 ) writeUsers. =>
 
 ( // () -> List<String>
-  this,Cgi. "home" obj,get : "users.db" : path,+
+  this,Cgi. .home : "users.db" : path,+
   file,read
-    this,Cgi. "fkey" obj,get cryp,decryp
+    this,Cgi. .fkey cryp,decryp
     js,ra
     (js,rs) lst,map
 ) readUsers. =>
@@ -79,11 +80,11 @@
   key this,klen cryp,key : kkey =
   this,readUsers. : Users =
 
-  ( wrap,none)
+  Users (":" str,split 0 get id ==) lst,find
   ( ":" str,split Fields =;
-    (wrap,none) else (Fields 2 get wrap,some) (Fields 1 get kkey ==) if
+    Fields 1 get kkey == (Fields 2 get wrap,some) (wrap,none) elif
   )
-  ( Users (":" str,split 0 get id ==) lst,find)
+  ( wrap,none)
   wrap,option
 ) checkUser. =>
 
@@ -93,14 +94,13 @@
     ( u =;
       u ":" str,split : Ds =;
 
-      (u)
-      else
+      Ds 0 get id ==
       (
         Changed 1 <<
         Ds 0 get : ":" : Ds 1 get : ":" : level + + + +
       )
-      (Ds 0 get id ==)
-      if
+      ( u)
+      elif
     )
     lst,map this,writeUsers.
   Changed >>
@@ -110,19 +110,18 @@
   newPass this,klen cryp,key : newPassK =
   oldPass this,klen cryp,key : oldPassK =
 
-  [0] data : Changed =
+  0 wrap,ref : Changed =
   this,readUsers.
     ( u =;
       u ":" str,split : Ds =;
 
-      ( u)
-      else
+      Ds 0 get id == : Ds 1 get oldPassK == : &&
       (
         Changed 1 <<
         Ds 0 get : ":" : newPassK : ":" : Ds 2 get : + + + +
       )
-      (Ds 0 get id == : Ds 1 get oldPassK == : &&)
-      if
+      ( u)
+      elif
     )
     lst,map this,writeUsers.
   Changed >>
@@ -131,20 +130,20 @@
 // Sessions --------------------------------------------------------------------
 
 ( Sessions =  // (List<Js>) -> Void  . Js is a JSON array
-  this,Cgi. "home" obj,get : "sessions.db" : path,+
-    Sessions js,wa : this,Cgi. "fkey" obj,get : cryp,cryp
+  this,Cgi. .home : "sessions.db" : path,+
+    Sessions js,wa : this,Cgi. .fkey : cryp,cryp
   file,write
 ) writeSessions. =>
 
 (   // () -> List<Js>. Js is a JSON array
-  this,Cgi. "home" obj,get : "sessions.db" : path,+
-  file,read : this,Cgi. "fkey" obj,get : cryp,decryp : js,ra
+  this,Cgi. .home : "sessions.db" : path,+
+  file,read : this,Cgi. .fkey : cryp,decryp : js,ra
 ) readSessions. =>
 
 ( expiration =; comKey =; id =; sessionId =
     // (String, String, String, Int) -> Void
     // If expiration is 0 tNoExpiration is used
-  (this,tNoExpiration.) else (expiration) (expiration) if : lapse =
+  expiration (expiration) (this,tNoExpiration.) elif : lapse =
   time,now lapse time,add : tm =
 
   this,readSessions.
@@ -169,23 +168,22 @@
     ( SsJs =
       SsJs js,ra Ss =
 
-      ( SsJs)
-      else
+      Ss 0 get js,rs : sessionId : ==
       ( Ss : 3 : conId js,ws : set+; js,wa)
-      ( Ss 0 get js,rs : sessionId : ==)
-      if
+      ( SsJs)
+      elif
     ) lst,map this,writeSessions.
 ) setConnectionId. =>
 
 // Public interface ------------------------------------------------------------
 
-( this,Cgi. "home" obj,get)
+( this,Cgi. .home)
 home =>
 /// () -> String
 /// Returns 'home' directory.
 
 ( k =;
-  this,Cgi. : "key" : k wrap,some : obj,put
+  this,Cgi. : "key" : k wrap,some : map,put
 ) setKey =>
 /// (String) -> Void
 /// Sets the key which 'cgi ok' and 'cgi err' will use. This function is called
@@ -193,14 +191,14 @@ home =>
 
 ( sessionId =
   sessionId this,klen cryp,genk this,setConnectionId.
+  sessionId this,getSession
+  ( )
   (
     {
       "key": "" js,ws
       "connectionId": "" js,ws
-    } data
+    } map,from
   )
-  ( )
-  (sessionId this,getSession)
   wrap,option
   this,ok
 ) connect =>
@@ -211,26 +209,26 @@ home =>
 ///               'key' is a new key, set for the new connection.
 
 ( expiration =; key =; user =
-  (
-    {
-      "level": "" js,ws
-      "sessionId": "" js,ws
-      "key": "" js,ws
-    } data
-  )
+  user key this,checkUser.
   ( level =
     this,klen cryp,genk : sessionId =
     this,klen cryp,genk : key =
     sessionId : user : key
-      (0) else (this,Cgi. "tExpiration" obj,get) (expiration) if
+      expiration (this,Cgi. .tExpiration) (0) elif
       this,addSession.
     {
       "level": level js,ws
       "sessionId": sessionId js,ws
       "key": key js,ws
-    } data
+    } map,from
   )
-  (user key this,checkUser.)
+  (
+    {
+      "level": "" js,ws
+      "sessionId": "" js,ws
+      "key": "" js,ws
+    } map,from
+  )
   wrap,option
   this,ok
 ) authentication =>
@@ -250,27 +248,26 @@ home =>
     ( SsJs =
       SsJs js,ra Ss =
 
-      ( SsJs)
-      else
+      Ss 0 get js,rs : sessionId : ==
       (
         Ss 5 get : js,ri : lapse =
         Ss : 4 : time,now lapse time,add js,wi : set+
         js,wa
       )
-      ( Ss 0 get js,rs : sessionId : ==)
-      if
+      ( SsJs)
+      elif
     ) lst,map : Sessions =
 
   Sessions this,writeSessions.
 
-  ( wrap,none)
+  Sessions (js,ra 0 get js,rs : sessionId : ==) lst,find
   ( Ss =
     {
       "key": Ss js,ra 2 get
-      "conId": Ss js,ra 3 get
-    } data wrap,some
+      "connectionId": Ss js,ra 3 get
+    } map,from wrap,some
   )
-  ( Sessions (js,ra 0 get js,rs : sessionId : ==) lst,find)
+  ( wrap,none)
   wrap,option
 ) getSession =>
 /// String -> Opt<Obj {key: Js, conId: Js}>
@@ -288,32 +285,32 @@ home =>
 
 ( level =; ukey =; user =; akey =; admin =
   {} "ok"
+    admin akey checkUser.
+    ( "0" == (user ukey level putUser.; 1) (0) elif)
     ( 0)
-    ( (0) else (user ukey level putUser.; 1) ("0" ==) if)
-    ( admin akey checkUser.)
     wrap,option
-    js.wb obj,put+ this,ok
+    js.wb map,put+ this,ok
 ) addUser =>
 
 ( user =; akey =; admin =
   {} "ok"
+    admin akey checkUser.
+    ( "0" == (user delUser.; 1) (0) elif)
     ( 0)
-    ( (0) else (user delUser.; 1) ("0" ==) if)
-    ( admin akey checkUser.)
     wrap,option
-    js.wb obj,put+ this,ok
+    js.wb map,put+ this,ok
 ) delUser =>
 
 ( level =;user =; akey =; admin =
   {} "ok"
+    admin akey checkUser.
+    ( "0" == (user level changeLevel.; 1) (0) elif)
     ( 0)
-    ( (0) else (user level changeLevel.; 1) ("0" ==) if)
-    ( admin akey checkUser.)
     wrap,option
-    js.wb obj,put+ this,ok
+    js.wb map,put+ this,ok
 ) changeLevel =>
 
-( this,changePass. r =; {} "ok" r js,wb obj,put+ this,ok)
+( @sss this,changePass. r =; {} map,from "ok" r js,wb map,put+ this,ok @s)
 changePass =>
 /// (String, String, String) -> JSON: {ok: Boolean}
 /// Changes user password.
@@ -323,26 +320,26 @@ changePass =>
 ///   return : JSON: {ok:true|false}, sets to true if operation
 ///            succeeded. A fail can come up if 'user' authentication fails.
 
-(
+( @m
   js,wo
-    (pop "Cgi->key is not set")
-    (cryp,cryp)
-    (this,Cgi. "key" obj,get)
+    this,Cgi. .key
+    ( cryp,cryp)
+    ( "Cgi has not been initialized")
     wrap,option
-) ok =>
+@s) ok =>
 /// (Map<JSON>) -> String
 
 (
-  {} this,ok
-) none =>
+  {} map,from this,ok
+@s) none =>
 /// () -> String
 
-( msg =
-  { "error": msg js,ws } data this,ok
-) error =>
+( @s:: msg =
+  { "error": msg js,ws } map,from this,ok
+@s) error =>
 /// (String) -> String
 
 (
-  { "expired": 1 js,wb } data this,ok
-) expired =>
+  { "expired": 1 js,wb } map,from this,ok
+@s) expired =>
 /// () -> String

@@ -5,15 +5,15 @@
 (
   "../src/dm/ext" import
 
-  ("dmstackTests" sys,init) (sys,init? !) if
+  sys,init? ! ("dmstackTests" sys,init) if
 
   "Ext tests:" sys,println
 
   // "www.google.com" ext,wget sys,println
 
-  // "face-wink" "A <b>message</b>" ext,zenityMsg
+   "face-wink" "A <b>message</b>" ext,zenityMsg
 
-  // "Title" "A text:\" --entry-text=\"default" ext,zenityEntry sys,println
+   "Title" "A text:\" --entry-text=\"default" ext,zenityEntry sys,println
 
   sys,home "source.txt" path,+ f =
   sys,home "target.zip" path,+ fzip =
@@ -27,7 +27,7 @@
   fzip sys,home ext,unzip
 
   f file,exists? assert
-  f file,read "A test text" == assert
+  f file,read "A test text" expect
 
   f file,del
   fzip file,del
