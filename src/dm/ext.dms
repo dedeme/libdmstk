@@ -5,7 +5,7 @@
 
 ( url =
   "wget -q --no-cache -O - " url + sys,cmd
-  dup size (0 get) (pop; "") elif
+  () ("") wrap,option
 ) wget =>
 /// Calls "wget -q -O - 'url'" and returns the text read.
 /// If the reading fails, it returns an empty string.
@@ -16,7 +16,7 @@
 ( text =; icon =
   "zenity --info --icon-name=\"" icon "\" --text=\"" text "\" 2>/dev/null"
     + + + + sys,cmd
-  size ! ("Fail running zenity." fail) if
+  (pop) ("Fail running zenity." fail) wrap,option
 ) zenityMsg  =>
 /// Shows a message box. It calls:
 ///       zenity --notification --window-icon='icon' --text='text'

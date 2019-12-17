@@ -21,10 +21,10 @@
   tExpiration: Int
 */
 
-( tExpiration =; home =
+( @+si:: tExpiration =; home =
 
   this,Cgi.
-    "fkey"        : this,dmKey. this,dmKey. size cryp,key : map,put+
+    "fkey"        : this,dmKey. this,dmKey. str,len cryp,key : map,put+
     "key"         : wrap,none : map,put+
     "home"        : home : map,put+
     "tExpiration" : tExpiration : map,put
@@ -38,8 +38,8 @@
     [] data this,writeSessions.
   )
   if
-) init =>
-/// (String, Int) -> Void
+@-) init =>
+/// @si -> @
 
 // Users -----------------------------------------------------------------------
 
@@ -58,7 +58,7 @@
 ) readUsers. =>
 
 ( id =; Users =  // (List<String>, String) -> Void
-  Users (u =; u ":" str,split 0 get id ==) lst,index : ix =
+  Users (u =; u ":" str,split !0 id ==) lst,index : ix =
   (Users ix lst,remove) (ix -1 !=) if
 ) removeUser. =>
 
@@ -80,9 +80,9 @@
   key this,klen cryp,key : kkey =
   this,readUsers. : Users =
 
-  Users (":" str,split 0 get id ==) lst,find
+  Users (":" str,split !0 id ==) lst,find
   ( ":" str,split Fields =;
-    Fields 1 get kkey == (Fields 2 get wrap,some) (wrap,none) elif
+    Fields !1 kkey == (Fields !2 wrap,some) (wrap,none) elif
   )
   ( wrap,none)
   wrap,option
@@ -94,10 +94,10 @@
     ( u =;
       u ":" str,split : Ds =;
 
-      Ds 0 get id ==
+      Ds !0 id ==
       (
         Changed 1 <<
-        Ds 0 get : ":" : Ds 1 get : ":" : level + + + +
+        Ds !0 : ":" : Ds !1 : ":" : level + + + +
       )
       ( u)
       elif
@@ -115,10 +115,10 @@
     ( u =;
       u ":" str,split : Ds =;
 
-      Ds 0 get id == : Ds 1 get oldPassK == : &&
+      Ds !0 id == : Ds !1 oldPassK == : &&
       (
         Changed 1 <<
-        Ds 0 get : ":" : newPassK : ":" : Ds 2 get : + + + +
+        Ds !0 : ":" : newPassK : ":" : Ds !2 : + + + +
       )
       ( u)
       elif
@@ -160,7 +160,7 @@
 
 ( sessionId =   // (String) -> Void
   this,readSessions.
-    (js,ra 0 get js,rs : sessionId : !=) lst,filter this,writeSessions.
+    (js,ra !0 js,rs : sessionId : !=) lst,filter this,writeSessions.
 ) delSession. =>
 
 ( conId =; sessionId =   // (String, String) -> Void
@@ -168,8 +168,8 @@
     ( SsJs =
       SsJs js,ra Ss =
 
-      Ss 0 get js,rs : sessionId : ==
-      ( Ss : 3 : conId js,ws : set+; js,wa)
+      Ss !0 js,rs : sessionId : ==
+      ( Ss : 3 : conId js,ws : lst,set+; js,wa)
       ( SsJs)
       elif
     ) lst,map this,writeSessions.
@@ -177,19 +177,19 @@
 
 // Public interface ------------------------------------------------------------
 
-( this,Cgi. .home)
+( @+:: this,Cgi. .home @-s)
 home =>
-/// () -> String
+/// @ -> @s
 /// Returns 'home' directory.
 
-( k =;
+( @+s:: k =;
   this,Cgi. : "key" : k wrap,some : map,put
-) setKey =>
-/// (String) -> Void
+@-) setKey =>
+/// @s -> Void
 /// Sets the key which 'cgi ok' and 'cgi err' will use. This function is called
 /// when connection or authentication.
 
-( sessionId =
+( @+s:: sessionId =
   sessionId this,klen cryp,genk this,setConnectionId.
   sessionId this,getSession
   ( )
@@ -201,14 +201,14 @@ home =>
   )
   wrap,option
   this,ok
-) connect =>
-/// (String) -> String
+@-s) connect =>
+/// @s -> @s
 /// Returns client 'connectionId' and 'key'. If conection failed both are "".
 ///   session_id: Session identifier.
 ///   return    : JSON: {connectionId: String, key: String}.
 ///               'key' is a new key, set for the new connection.
 
-( expiration =; key =; user =
+( @+ssi:: expiration =; key =; user =
   user key this,checkUser.
   ( level =
     this,klen cryp,genk : sessionId =
@@ -231,8 +231,8 @@ home =>
   )
   wrap,option
   this,ok
-) authentication =>
-/// (String, String, Int) -> String
+@-s) authentication =>
+/// @ssi -> @s
 /// Sends to client level, key, page_id and session_id.
 /// If authentication failed every value is "".
 ///   user      : User name.
@@ -240,18 +240,18 @@ home =>
 ///   expiration: If is set to 0, session will expire after 30 days.
 ///   return    : JSON: {level: String, key: String, sessionId: String}
 
-( sessionId =
+( @+s:: sessionId =
   time,now : now =
 
   this,readSessions.
-    (js,ra 4 get js,ri : now : >=) lst,filter
+    (js,ra !4 js,ri : now : >=) lst,filter
     ( SsJs =
       SsJs js,ra Ss =
 
-      Ss 0 get js,rs : sessionId : ==
+      Ss !0 js,rs : sessionId : ==
       (
-        Ss 5 get : js,ri : lapse =
-        Ss : 4 : time,now lapse time,add js,wi : set+
+        Ss !5 : js,ri : lapse =
+        Ss : 4 : time,now lapse time,add js,wi : lst,set+
         js,wa
       )
       ( SsJs)
@@ -260,33 +260,35 @@ home =>
 
   Sessions this,writeSessions.
 
-  Sessions (js,ra 0 get js,rs : sessionId : ==) lst,find
+  Sessions (js,ra !0 js,rs : sessionId : ==) lst,find
   ( Ss =
     {
-      "key": Ss js,ra 2 get
-      "connectionId": Ss js,ra 3 get
+      "key": Ss js,ra !2
+      "connectionId": Ss js,ra !3
     } map,from wrap,some
   )
   ( wrap,none)
   wrap,option
-) getSession =>
-/// String -> Opt<Obj {key: Js, conId: Js}>
+@-o) getSession =>
+/// @s -> @s
 ///   sesionId: Session identifier.
-///   return  : Option with communication key and connection identifier.
+///   return  : [{key: Js, conId: Js} map,from] or [].
 
-( sessionId =
+( @+s:: sessionId =
   this,readSessions.
-    (js,ra 0 get js,rs : sessionId : !=) lst,filter
+    (js,ra !0 js,rs : sessionId : !=) lst,filter
     this,writeSessions.
     this,none
-) delSession =>
-/// String -> JSON: {}
+@-s) delSession =>
+/// @s -> @s
 /// Deletes 'sessionId' and returns an empty response.
+///   sessionId: Session identifier
+///   return: JSON: {}
 
 ( level =; ukey =; user =; akey =; admin =
   {} "ok"
-    admin akey checkUser.
-    ( "0" == (user ukey level putUser.; 1) (0) elif)
+    admin akey this,checkUser.
+    ( "0" == (user ukey level this,putUser.; 1) (0) elif)
     ( 0)
     wrap,option
     js.wb map,put+ this,ok
@@ -294,8 +296,8 @@ home =>
 
 ( user =; akey =; admin =
   {} "ok"
-    admin akey checkUser.
-    ( "0" == (user delUser.; 1) (0) elif)
+    admin akey this,checkUser.
+    ( "0" == (user this,delUser.; 1) (0) elif)
     ( 0)
     wrap,option
     js.wb map,put+ this,ok
@@ -303,16 +305,16 @@ home =>
 
 ( level =;user =; akey =; admin =
   {} "ok"
-    admin akey checkUser.
-    ( "0" == (user level changeLevel.; 1) (0) elif)
+    admin akey this,checkUser.
+    ( "0" == (user level this,changeLevel.; 1) (0) elif)
     ( 0)
     wrap,option
     js.wb map,put+ this,ok
 ) changeLevel =>
 
-( @sss this,changePass. r =; {} map,from "ok" r js,wb map,put+ this,ok @s)
+( @+sss:: this,changePass. r =; {} map,from "ok" r js,wb map,put+ this,ok @-s)
 changePass =>
-/// (String, String, String) -> JSON: {ok: Boolean}
+/// @sss -> @s
 /// Changes user password.
 ///   user   : User name to change password.
 ///   key    : Old password.
@@ -320,26 +322,31 @@ changePass =>
 ///   return : JSON: {ok:true|false}, sets to true if operation
 ///            succeeded. A fail can come up if 'user' authentication fails.
 
-( @m
+( @+m
   js,wo
     this,Cgi. .key
     ( cryp,cryp)
     ( "Cgi has not been initialized")
     wrap,option
-@s) ok =>
-/// (Map<JSON>) -> String
+@-s) ok =>
+/// @m -> @s
+/// Returns an JSON of type object converted to string.
 
-(
+( @+
   {} map,from this,ok
-@s) none =>
-/// () -> String
+@-s) none =>
+/// @ -> @s
+///   return: JSON: {}
 
-( @s:: msg =
+( @+s:: msg =
   { "error": msg js,ws } map,from this,ok
-@s) error =>
-/// (String) -> String
+@-s) error =>
+/// @s -> @s
+///   msg: Error message
+///   return: JSON: {error: msg}
 
-(
+( @+
   { "expired": 1 js,wb } map,from this,ok
-@s) expired =>
-/// () -> String
+@-s) expired =>
+/// @ -> @s
+///   return: JSON: {expired: true}
