@@ -59,7 +59,7 @@
 
 ( id =; Users =  // (List<String>, String) -> Void
   Users (u =; u ":" str,split !0 id ==) lst,index : ix =
-  (Users ix lst,remove) (ix -1 !=) if
+  ix -1 != (Users ix lst,remove) if
 ) removeUser. =>
 
 ( level =; key =; id =  // (String, String, String) -> Void
